@@ -27,6 +27,29 @@ impl ExiBitstream {
         }
     }
 
+    pub fn reset(&mut self) {
+        if self._new_called {
+            self.byte_pos = self._flag_byte_pos;
+        } else {
+            self.byte_pos = 0;
+        }
+        self.bit_count = 0;
+    }
+
+    pub fn get_length(&self) -> usize {
+        let mut length: usize = self.byte_pos;
+
+        if self._new_called == true && (self._flag_byte_pos > 0) {
+            length -= self._flag_byte_pos;
+        }
+
+        if self.bit_count > 0 {
+            length += 1;
+        }
+
+        return length;
+    }
+
     fn has_overflow(&mut self) -> ExiError {
 
         if self.bit_count == EXI_BITSTREAM_MAX_BIT_COUNT {
@@ -65,6 +88,25 @@ impl ExiBitstream {
         
     }
 
+    fn read_bit(&mut self, bit: &mut bool) -> ExiError {
+
+        if self.has_overflow() == ExiError::BitstreamOverflow {
+            return ExiError::BitstreamOverflow;
+        }
+
+        let current_bit = (self.data[self.byte_pos]) >> (EXI_BITSTREAM_MAX_BIT_COUNT - (self.bit_count + 1));
+
+        match current_bit & 1 {
+            0 => *bit = false,
+            1 => *bit = true,
+            _ => (),
+        }
+
+        self.bit_count += 1;
+
+        return ExiError::NoError;
+    }
+
     pub fn write_bits(&mut self, bit_count: usize, value: u32) -> ExiError {
 
         if bit_count > 32 {
@@ -89,27 +131,43 @@ impl ExiBitstream {
         self.write_bits(8, value as u32)
     }
 
-    pub fn reset(&mut self) {
-        if self._new_called {
-            self.byte_pos = self._flag_byte_pos;
-        } else {
-            self.byte_pos = 0;
+    pub fn read_bits(&mut self, bit_count: usize, value: &mut u32) -> ExiError {
+
+        *value = 0;
+
+        if bit_count > 32 {
+            return ExiError::BitCountLargerThanTypeSize;
         }
-        self.bit_count = 0;
+
+        let mut bit: bool = false;
+
+        for _ in 0..bit_count {
+            let error = self.read_bit(&mut bit);
+            if error != ExiError::NoError {
+                return error;
+            }
+
+            *value = (*value << 1) | bit as u32;
+        }
+
+        return ExiError::NoError;
     }
 
-    pub fn get_length(&self) -> usize {
-        let mut length: usize = self.byte_pos;
+    pub fn read_octet(&mut self, value: &mut u8) -> ExiError{
+        *value = 0;
 
-        if self._new_called == true && (self._flag_byte_pos > 0) {
-            length -= self._flag_byte_pos;
+        let mut bit: bool = false;
+
+        for _ in 0..8 {
+            let error = self.read_bit(&mut bit);
+            if error != ExiError::NoError {
+                return error;
+            }
+
+            *value = (*value << 1) | bit as u8;
         }
 
-        if self.bit_count > 0 {
-            length += 1;
-        }
-
-        return length;
+        return ExiError::NoError;
     }
 
 }
@@ -224,7 +282,6 @@ mod tests {
         assert_eq!(exi_stream.bit_count, 0);
 
     }
-
     #[test]
     fn get_length() {
         let vector = vec![0; 1024];
@@ -235,6 +292,35 @@ mod tests {
         let error = exi_stream.write_bits(12, 0xFFF);
         assert_eq!(error, ExiError::NoError);
         assert_eq!(exi_stream.get_length(), 2);
+    }
+    #[test]
+    fn internal_read_bit() {
+        let mut vector = vec![0; 1024];
+        vector[0] = 0xF0;
+        let vector_len = vector.len();
+        let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
+
+        let mut bit: bool = false;
+
+        let mut error = exi_stream.read_bit(&mut bit);
+        assert_eq!(error, ExiError::NoError);
+        assert_eq!(bit, true);
+        error = exi_stream.read_bit(&mut bit);
+        assert_eq!(error, ExiError::NoError);
+        assert_eq!(bit, true);
+    }
+    #[test]
+    fn read_bits() {
+        let mut vector = vec![0; 1024];
+        vector[0] = 0xAA;
+        let vector_len = vector.len();
+        let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
+
+        let mut value: u32 = 0;
+
+        let error = exi_stream.read_bits(8, &mut value);
+        assert_eq!(error, ExiError::NoError);
+        assert_eq!(value, 0xAA);
     }
 
 
