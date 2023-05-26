@@ -3,7 +3,7 @@ use crate::common::exi_error_codes::ExiError;
 const EXI_BITSTREAM_MAX_BIT_COUNT: u8 = 8;
 
 #[derive(Debug, PartialEq)]
-struct ExiBitstream {
+pub struct ExiBitstream {
     /* byte array size and data */
     data: Vec<u8>,
     data_size: usize,
