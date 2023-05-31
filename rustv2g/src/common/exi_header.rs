@@ -60,12 +60,12 @@ mod tests {
         exi_stream.reset();
 
         let mut value: u32 = 0;
-        exi_header_read(&mut exi_stream, &mut value);
+        error = exi_header_read(&mut exi_stream, &mut value);
 
         assert_eq!(error, ExiError::NoError);
         assert_eq!(value, EXI_SIMPLE_HEADER_VALUE);
     }
-
+    #[test]
     fn header_read_check() {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
