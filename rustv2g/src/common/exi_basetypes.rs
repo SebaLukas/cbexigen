@@ -1,14 +1,14 @@
 use crate::common::exi_error_codes::ExiError;
 
-const EXI_BASETYPES_MAX_OCTETS_SUPPORTED: usize = 10;
+pub const EXI_BASETYPES_MAX_OCTETS_SUPPORTED: usize = 10;
 
-const EXI_BASETYPES_OCTET_SEQ_FLAG_MASK: u32 = 0x80;
-const EXI_BASETYPES_OCTET_SEQ_VALUE_MASK: u32= 0x7F;
+pub const EXI_BASETYPES_OCTET_SEQ_FLAG_MASK: u32 = 0x80;
+pub const EXI_BASETYPES_OCTET_SEQ_VALUE_MASK: u32= 0x7F;
 
-const EXI_BASETYPES_UINT8_MAX_OCTETS: usize = 2;
-const EXI_BASETYPES_UINT16_MAX_OCTETS: usize = 3;
-const EXI_BASETYPES_UINT32_MAX_OCTETS: usize = 5;
-const EXI_BASETYPES_UINT64_MAX_OCTETS: usize = 10;
+pub const EXI_BASETYPES_UINT8_MAX_OCTETS: usize = 2;
+pub const EXI_BASETYPES_UINT16_MAX_OCTETS: usize = 3;
+pub const EXI_BASETYPES_UINT32_MAX_OCTETS: usize = 5;
+pub const EXI_BASETYPES_UINT64_MAX_OCTETS: usize = 10;
 
 #[derive(Debug, PartialEq)]
 pub struct ExiUnsigned {
@@ -17,6 +17,18 @@ pub struct ExiUnsigned {
 }
 
 impl ExiUnsigned {
+
+    pub fn new(octets: [u8; EXI_BASETYPES_MAX_OCTETS_SUPPORTED], octets_count: usize) -> Self {
+        Self { octets, octets_count }
+    }
+
+    pub fn octets(&self) -> &[u8] {
+        &self.octets
+    }
+
+    pub fn octets_count(&self) -> &usize {
+        &self.octets_count
+    }
     
     pub fn convert32_to(&mut self, value: u32, max_octets: usize) -> ExiError {
 
