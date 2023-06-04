@@ -32,6 +32,12 @@ pub fn encoder_bytes(stream: &mut ExiBitstream, bytes_len: usize, bytes: &[u8], 
     Ok(())
 }
 
+/*****************************************************************************
+ * interface functions - unsigned integer
+ *****************************************************************************/
+pub fn encoder_nbit_uint(stream: &mut ExiBitstream, bit_count: usize, value: u32) -> Result<(), ExiError> {
+    stream.write_bits(bit_count, value)
+}
 
 
 mod tests {
