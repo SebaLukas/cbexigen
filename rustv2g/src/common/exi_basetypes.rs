@@ -30,7 +30,7 @@ impl ExiUnsigned {
         &self.octets_count
     }
     
-    pub fn convert32_to(&mut self, value: u32, max_octets: usize) -> ExiError {
+    pub fn convert32_to(&mut self, value: u32, max_octets: usize) -> Result<(), ExiError> {
 
         self.octets_count = 0;
         let mut dummy = value;
@@ -46,13 +46,13 @@ impl ExiUnsigned {
         }
 
         if self.octets_count <= max_octets {
-            ExiError::NoError
+            Ok(())
         } else {
-            ExiError::OctetCountLargerThanTypeSupports
+            Err(ExiError::OctetCountLargerThanTypeSupports)
         }
     }
 
-    pub fn convert64_to(&mut self, value: u64) -> ExiError {
+    pub fn convert64_to(&mut self, value: u64) -> Result<(), ExiError> {
 
         self.octets_count = 0;
         let mut dummy = value;
@@ -68,37 +68,36 @@ impl ExiUnsigned {
         }
 
         if self.octets_count <= EXI_BASETYPES_UINT64_MAX_OCTETS {
-            ExiError::NoError
+            Ok(())
         } else {
-            ExiError::OctetCountLargerThanTypeSupports
+            Err(ExiError::OctetCountLargerThanTypeSupports)
         }
     }
 
-    pub fn convert32_from(&self, value: &mut u32, max_octets: usize) -> ExiError {
+    pub fn convert32_from(&self, max_octets: usize) -> Result<u32, ExiError> {
 
         if self.octets_count > max_octets {
-            return ExiError::OctetCountLargerThanTypeSupports;
+            return Err(ExiError::OctetCountLargerThanTypeSupports);
         }
-        *value = 0;
+        let mut value = 0;
 
         for n in 0..self.octets_count {
-            *value |= (self.octets[n] as u32 & EXI_BASETYPES_OCTET_SEQ_VALUE_MASK) << (n * 7);
+            value |= (self.octets[n] as u32 & EXI_BASETYPES_OCTET_SEQ_VALUE_MASK) << (n * 7);
         }
-        ExiError::NoError
+        Ok(value)
     }
 
-    pub fn convert64_from(&self, value: &mut u64) -> ExiError {
+    pub fn convert64_from(&self) -> Result<u64, ExiError> {
 
         if self.octets_count > EXI_BASETYPES_UINT64_MAX_OCTETS {
-            return ExiError::OctetCountLargerThanTypeSupports;
+            return Err(ExiError::OctetCountLargerThanTypeSupports);
         }
-        *value = 0;
+        let mut value = 0;
 
         for n in 0..self.octets_count {
-            *value |= ((self.octets[n] as u32 & EXI_BASETYPES_OCTET_SEQ_VALUE_MASK) << (n * 7)) as u64;
+            value |= ((self.octets[n] as u32 & EXI_BASETYPES_OCTET_SEQ_VALUE_MASK) << (n * 7)) as u64;
         }
-
-        ExiError::NoError
+        Ok(value)
     }
 
 }
@@ -113,8 +112,7 @@ mod tests {
             octets_count: 0,
         };
 
-        let error = exi_unsigned.convert32_to(0x02, EXI_BASETYPES_UINT8_MAX_OCTETS);
-        assert_eq!(error, ExiError::NoError);
+        assert_eq!(exi_unsigned.convert32_to(0x02, EXI_BASETYPES_UINT8_MAX_OCTETS).is_ok(), true);
         assert_eq!(exi_unsigned.octets_count, 1);
         assert_eq!(exi_unsigned.octets[0], 0x02);
     }
@@ -126,8 +124,7 @@ mod tests {
             octets_count: 0,
         };
 
-        let error = exi_unsigned.convert32_to(0x5678, EXI_BASETYPES_UINT16_MAX_OCTETS);
-        assert_eq!(error, ExiError::NoError);
+        assert_eq!(exi_unsigned.convert32_to(0x5678, EXI_BASETYPES_UINT16_MAX_OCTETS).is_ok(), true);
         assert_eq!(exi_unsigned.octets_count, 3);
         assert_eq!(exi_unsigned.octets[0], 0b11111000);
         assert_eq!(exi_unsigned.octets[1], 0b10101100);
@@ -141,8 +138,7 @@ mod tests {
             octets_count: 0,
         };
 
-        let error = exi_unsigned.convert32_to(0x105678, EXI_BASETYPES_UINT32_MAX_OCTETS);
-        assert_eq!(error, ExiError::NoError);
+        assert_eq!(exi_unsigned.convert32_to(0x105678, EXI_BASETYPES_UINT32_MAX_OCTETS).is_ok(), true);
         assert_eq!(exi_unsigned.octets_count, 3);
         assert_eq!(exi_unsigned.octets[0], 0b11111000);
         assert_eq!(exi_unsigned.octets[1], 0b10101100);
@@ -156,8 +152,7 @@ mod tests {
             octets_count: 0,
         };
 
-        let error = exi_unsigned.convert64_to(0x105678);
-        assert_eq!(error, ExiError::NoError);
+        assert_eq!(exi_unsigned.convert64_to(0x105678).is_ok(), true);
         assert_eq!(exi_unsigned.octets_count, 3);
         assert_eq!(exi_unsigned.octets[0], 0b11111000);
         assert_eq!(exi_unsigned.octets[1], 0b10101100);
@@ -171,16 +166,8 @@ mod tests {
             octets_count: 0,
         };
 
-        let expected = 0x5678;
-
-        let mut error = exi_unsigned.convert32_to(expected, EXI_BASETYPES_UINT16_MAX_OCTETS);
-        assert_eq!(error, ExiError::NoError);
-
-        let mut value = 0;
-
-        error = exi_unsigned.convert32_from(&mut value, EXI_BASETYPES_UINT16_MAX_OCTETS);
-        assert_eq!(error, ExiError::NoError);
-        assert_eq!(value, expected);
+        assert_eq!(exi_unsigned.convert32_to(0x5678, EXI_BASETYPES_UINT16_MAX_OCTETS).is_ok(), true);
+        assert_eq!(exi_unsigned.convert32_from(EXI_BASETYPES_UINT16_MAX_OCTETS), Ok(0x5678));
     }
 
     #[test]
@@ -189,15 +176,8 @@ mod tests {
             octets: [0; EXI_BASETYPES_MAX_OCTETS_SUPPORTED],
             octets_count: 0,
         };
-        let expected = 0x105678;
-        let mut error = exi_unsigned.convert64_to(expected);
-        assert_eq!(error, ExiError::NoError);
-
-        let mut value = 0;
-
-        error = exi_unsigned.convert64_from(&mut value);
-        assert_eq!(error, ExiError::NoError);
-        assert_eq!(value, expected);
+        assert_eq!(exi_unsigned.convert64_to(0x105678).is_ok(), true);
+        assert_eq!(exi_unsigned.convert64_from(), Ok(0x105678));
     }
 
 }
