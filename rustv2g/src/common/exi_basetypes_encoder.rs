@@ -78,6 +78,29 @@ pub fn encoder_u64(stream: &mut ExiBitstream, value: u64) -> Result<(), ExiError
     write_unsigned(stream, &mut exi_unsigned)
 }
 
+/*****************************************************************************
+ * interface functions - integer
+ *****************************************************************************/
+pub fn encoder_i8(stream: &mut ExiBitstream, value: i8) -> Result<(), ExiError> {
+    encoder_bool(stream, if value < 0 {true} else {false})?;
+    encoder_u8(stream, if value < 0 {(-value) as u8} else {value as u8})
+}
+
+pub fn encoder_i16(stream: &mut ExiBitstream, value: i16) -> Result<(), ExiError> {
+    encoder_bool(stream, if value < 0 {true} else {false})?;
+    encoder_u16(stream, if value < 0 {(-value) as u16} else {value as u16})
+}
+
+pub fn encoder_i32(stream: &mut ExiBitstream, value: i32) -> Result<(), ExiError> {
+    encoder_bool(stream, if value < 0 {true} else {false})?;
+    encoder_u32(stream, if value < 0 {(-value) as u32} else {value as u32})
+}
+
+pub fn encoder_i64(stream: &mut ExiBitstream, value: i64) -> Result<(), ExiError> {
+    encoder_bool(stream, if value < 0 {true} else {false})?;
+    encoder_u64(stream, if value < 0 {(-value) as u64} else {value as u64})
+}
+
 mod tests {
     use super::*;
     use crate::common::exi_basetypes::{
@@ -186,4 +209,117 @@ mod tests {
         assert_eq!(exi_stream.read_octet(), Ok(0b00000001));
     }
 
+    #[test]
+    fn test_encoder_i8_positive() {
+        let vector = vec![0; 1024];
+        let vector_len = vector.len();
+        let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
+        
+        assert_eq!(encoder_i8(&mut exi_stream, 30).is_ok(), true);
+
+        exi_stream.reset();
+        assert_eq!(exi_stream.read_bits(1), Ok(0));
+        assert_eq!(exi_stream.read_octet(), Ok(30));
+    }
+
+    #[test]
+    fn test_encoder_i8_negative() {
+        let vector = vec![0; 1024];
+        let vector_len = vector.len();
+        let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
+        
+        assert_eq!(encoder_i8(&mut exi_stream, -30).is_ok(), true);
+
+        exi_stream.reset();
+        assert_eq!(exi_stream.read_bits(1), Ok(1));
+        assert_eq!(exi_stream.read_octet(), Ok(30));
+    }
+
+    #[test]
+    fn test_encoder_i16_positive() {
+        let vector = vec![0; 1024];
+        let vector_len = vector.len();
+        let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
+        
+        assert_eq!(encoder_i16(&mut exi_stream, 555).is_ok(), true);
+
+        exi_stream.reset();
+        assert_eq!(exi_stream.read_bits(1), Ok(0));
+        assert_eq!(exi_stream.read_octet(), Ok(0xAB));
+        assert_eq!(exi_stream.read_octet(), Ok(0x04));
+    }
+
+    #[test]
+    fn test_encoder_i16_negative() {
+        let vector = vec![0; 1024];
+        let vector_len = vector.len();
+        let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
+        
+        assert_eq!(encoder_i16(&mut exi_stream, -555).is_ok(), true);
+
+        exi_stream.reset();
+        assert_eq!(exi_stream.read_bits(1), Ok(1));
+        assert_eq!(exi_stream.read_octet(), Ok(0xAB));
+        assert_eq!(exi_stream.read_octet(), Ok(0x04));
+    }
+
+    #[test]
+    fn test_encoder_i32_positive() {
+        let vector = vec![0; 1024];
+        let vector_len = vector.len();
+        let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
+        
+        assert_eq!(encoder_i32(&mut exi_stream, 22136).is_ok(), true);
+
+        exi_stream.reset();
+        assert_eq!(exi_stream.read_bits(1), Ok(0));
+        assert_eq!(exi_stream.read_octet(), Ok(0xF8));
+        assert_eq!(exi_stream.read_octet(), Ok(0xAC));
+        assert_eq!(exi_stream.read_octet(), Ok(0x01));
+    }
+
+    #[test]
+    fn test_encoder_i32_negative() {
+        let vector = vec![0; 1024];
+        let vector_len = vector.len();
+        let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
+        
+        assert_eq!(encoder_i32(&mut exi_stream, -22136).is_ok(), true);
+
+        exi_stream.reset();
+        assert_eq!(exi_stream.read_bits(1), Ok(1));
+        assert_eq!(exi_stream.read_octet(), Ok(0xF8));
+        assert_eq!(exi_stream.read_octet(), Ok(0xAC));
+        assert_eq!(exi_stream.read_octet(), Ok(0x01));
+    }
+
+    #[test]
+    fn test_encoder_i64_positive() {
+        let vector = vec![0; 1024];
+        let vector_len = vector.len();
+        let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
+        
+        assert_eq!(encoder_i64(&mut exi_stream, 22136).is_ok(), true);
+
+        exi_stream.reset();
+        assert_eq!(exi_stream.read_bits(1), Ok(0));
+        assert_eq!(exi_stream.read_octet(), Ok(0xF8));
+        assert_eq!(exi_stream.read_octet(), Ok(0xAC));
+        assert_eq!(exi_stream.read_octet(), Ok(0x01));
+    }
+
+    #[test]
+    fn test_encoder_i64_negative() {
+        let vector = vec![0; 1024];
+        let vector_len = vector.len();
+        let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
+        
+        assert_eq!(encoder_i64(&mut exi_stream, -22136).is_ok(), true);
+
+        exi_stream.reset();
+        assert_eq!(exi_stream.read_bits(1), Ok(1));
+        assert_eq!(exi_stream.read_octet(), Ok(0xF8));
+        assert_eq!(exi_stream.read_octet(), Ok(0xAC));
+        assert_eq!(exi_stream.read_octet(), Ok(0x01));
+    }
 }
