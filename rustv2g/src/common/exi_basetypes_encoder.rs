@@ -1,3 +1,5 @@
+use std::str;
+
 use crate::common::exi_error_codes::ExiError;
 use crate::common::exi_bitstream::ExiBitstream;
 use crate::common::exi_basetypes::ExiUnsigned;
@@ -8,6 +10,8 @@ use crate::common::exi_basetypes::{
     EXI_BASETYPES_UINT16_MAX_OCTETS,
     EXI_BASETYPES_UINT32_MAX_OCTETS,
 };
+
+const ASCII_MAX_VALUE: u8 = 127;
 
 fn write_unsigned(stream: &mut ExiBitstream, exi_unsigned: &ExiUnsigned) -> Result<(), ExiError> {
 
@@ -99,6 +103,25 @@ pub fn encoder_i32(stream: &mut ExiBitstream, value: i32) -> Result<(), ExiError
 pub fn encoder_i64(stream: &mut ExiBitstream, value: i64) -> Result<(), ExiError> {
     encoder_bool(stream, if value < 0 {true} else {false})?;
     encoder_u64(stream, if value < 0 {(-value) as u64} else {value as u64})
+}
+
+/*****************************************************************************
+ * interface functions - characters, string
+ *****************************************************************************/
+pub fn encoder_characters(stream: &mut ExiBitstream, characters: String, characters_size: usize) -> Result<(), ExiError> {
+
+    if characters.len() > characters_size {
+        return Err(ExiError::CharacterBufferTooSmall);
+    }
+
+    for &current_character in characters.as_bytes() {
+        if current_character > ASCII_MAX_VALUE {
+            return Err(ExiError::UnsupportedCharacterValue);
+        }
+        stream.write_octet(current_character)?;
+    }
+
+    Ok(())
 }
 
 mod tests {
@@ -321,5 +344,22 @@ mod tests {
         assert_eq!(exi_stream.read_octet(), Ok(0xF8));
         assert_eq!(exi_stream.read_octet(), Ok(0xAC));
         assert_eq!(exi_stream.read_octet(), Ok(0x01));
+    }
+
+    #[test]
+    fn test_encoder_characters() {
+        let vector = vec![0; 1024];
+        let vector_len = vector.len();
+        let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
+        
+        assert_eq!(encoder_characters(&mut exi_stream, String::from("hello"), 10).is_ok(), true);
+        
+        exi_stream.reset();
+
+        let mut expected = Vec::new();
+        for _ in 0..5 {
+            expected.push(exi_stream.read_octet().unwrap())
+        }
+        assert_eq!(str::from_utf8(&expected).unwrap(), "hello");
     }
 }
