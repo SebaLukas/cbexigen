@@ -1,5 +1,3 @@
-use std::str;
-
 use crate::common::exi_error_codes::ExiError;
 use crate::common::exi_bitstream::ExiBitstream;
 use crate::common::exi_basetypes::ExiUnsigned;
@@ -130,6 +128,7 @@ mod tests {
         EXI_BASETYPES_MAX_OCTETS_SUPPORTED,
         EXI_BASETYPES_UINT16_MAX_OCTETS
     };
+    use std::str;
 
     #[test]
     fn local_write_unsigned() {
