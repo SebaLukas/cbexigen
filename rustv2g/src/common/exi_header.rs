@@ -1,5 +1,5 @@
-use crate::common::exi_error_codes::ExiError;
 use crate::common::exi_bitstream::ExiBitstream;
+use crate::common::exi_error_codes::ExiError;
 
 const EXI_SIMPLE_HEADER_BIT_SIZE: usize = 8;
 const EXI_SIMPLE_HEADER_VALUE: u32 = 0x80;
@@ -12,8 +12,7 @@ pub fn exi_header_read(stream: &mut ExiBitstream) -> Result<u32, ExiError> {
     stream.read_bits(EXI_SIMPLE_HEADER_BIT_SIZE)
 }
 
-pub fn exi_header_read_and_check(stream: &mut ExiBitstream) -> Result<(), ExiError>  {
-
+pub fn exi_header_read_and_check(stream: &mut ExiBitstream) -> Result<(), ExiError> {
     let header = exi_header_read(stream)?;
 
     if header == '$' as u32 {
@@ -46,7 +45,12 @@ mod tests {
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
 
-        assert_eq!(exi_stream.write_bits(EXI_SIMPLE_HEADER_BIT_SIZE, EXI_SIMPLE_HEADER_VALUE).is_ok(), true);
+        assert_eq!(
+            exi_stream
+                .write_bits(EXI_SIMPLE_HEADER_BIT_SIZE, EXI_SIMPLE_HEADER_VALUE)
+                .is_ok(),
+            true
+        );
 
         exi_stream.reset();
 
@@ -59,11 +63,15 @@ mod tests {
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
 
-        assert_eq!(exi_stream.write_bits(EXI_SIMPLE_HEADER_BIT_SIZE, EXI_SIMPLE_HEADER_VALUE).is_ok(), true);
+        assert_eq!(
+            exi_stream
+                .write_bits(EXI_SIMPLE_HEADER_BIT_SIZE, EXI_SIMPLE_HEADER_VALUE)
+                .is_ok(),
+            true
+        );
 
         exi_stream.reset();
 
         assert_eq!(exi_header_read_and_check(&mut exi_stream).is_ok(), true);
     }
-
 }

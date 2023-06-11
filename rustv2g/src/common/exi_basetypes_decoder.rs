@@ -1,16 +1,13 @@
-use crate::common::exi_error_codes::ExiError;
-use crate::common::exi_bitstream::ExiBitstream;
 use crate::common::exi_basetypes::ExiUnsigned;
+use crate::common::exi_bitstream::ExiBitstream;
+use crate::common::exi_error_codes::ExiError;
 
 use crate::common::exi_basetypes::{
-    EXI_BASETYPES_MAX_OCTETS_SUPPORTED,
-    EXI_BASETYPES_UINT8_MAX_OCTETS,
-    EXI_BASETYPES_UINT16_MAX_OCTETS,
-    EXI_BASETYPES_UINT32_MAX_OCTETS,
+    EXI_BASETYPES_MAX_OCTETS_SUPPORTED, EXI_BASETYPES_UINT16_MAX_OCTETS,
+    EXI_BASETYPES_UINT32_MAX_OCTETS, EXI_BASETYPES_UINT8_MAX_OCTETS,
 };
 
 fn read_unsigned(stream: &mut ExiBitstream) -> Result<ExiUnsigned, ExiError> {
-
     const MSB: u8 = 128;
     let mut octets = [0; EXI_BASETYPES_MAX_OCTETS_SUPPORTED];
     let mut octets_count = 0;
@@ -40,8 +37,12 @@ pub fn decoder_bool(stream: &mut ExiBitstream) -> Result<bool, ExiError> {
 /*****************************************************************************
  * interface functions - bytes, binary
  *****************************************************************************/
-pub fn decoder_bytes(stream: &mut ExiBitstream, bytes_len: usize, bytes: &mut [u8], bytes_size: usize) -> Result<(), ExiError> {
-
+pub fn decoder_bytes(
+    stream: &mut ExiBitstream,
+    bytes_len: usize,
+    bytes: &mut [u8],
+    bytes_size: usize,
+) -> Result<(), ExiError> {
     if bytes_len > bytes_size {
         return Err(ExiError::ByteBufferTooSmall);
     }
@@ -67,7 +68,7 @@ pub fn decoder_u8(stream: &mut ExiBitstream) -> Result<u8, ExiError> {
 pub fn decoder_u16(stream: &mut ExiBitstream) -> Result<u16, ExiError> {
     let exi_unsigned = read_unsigned(stream)?;
     let value = exi_unsigned.convert32_from(EXI_BASETYPES_UINT16_MAX_OCTETS)?;
-    Ok(value as u16) 
+    Ok(value as u16)
 }
 
 pub fn decoder_u32(stream: &mut ExiBitstream) -> Result<u32, ExiError> {
@@ -126,7 +127,11 @@ pub fn decoder_i64(stream: &mut ExiBitstream) -> Result<i64, ExiError> {
 /*****************************************************************************
  * interface functions - characters, string
  *****************************************************************************/
-pub fn decoder_characters(stream: &mut ExiBitstream, characters_len: usize, characters_size: usize) -> Result<String, ExiError> {
+pub fn decoder_characters(
+    stream: &mut ExiBitstream,
+    characters_len: usize,
+    characters_size: usize,
+) -> Result<String, ExiError> {
     if characters_len + 1 > characters_size {
         return Err(ExiError::CharacterBufferTooSmall);
     }
@@ -142,7 +147,6 @@ pub fn decoder_characters(stream: &mut ExiBitstream, characters_len: usize, char
     Ok(string)
 }
 
-
 mod tests {
     use super::*;
 
@@ -153,10 +157,9 @@ mod tests {
 
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         let exi_unsigned = read_unsigned(&mut exi_stream).unwrap();
         assert_eq!(exi_unsigned.octets()[0], 0x6B);
-        
     }
 
     #[test]
@@ -167,11 +170,10 @@ mod tests {
 
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         let exi_unsigned = read_unsigned(&mut exi_stream).unwrap();
         assert_eq!(exi_unsigned.octets()[0], 0xAB);
         assert_eq!(exi_unsigned.octets()[1], 0x05);
-        
     }
 
     #[test]
@@ -181,7 +183,7 @@ mod tests {
 
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         assert_eq!(decoder_bool(&mut exi_stream), Ok(true));
     }
 
@@ -195,7 +197,7 @@ mod tests {
 
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         let mut vector = vec![0; 4];
         assert_eq!(decoder_bytes(&mut exi_stream, 4, &mut vector, 5), Ok(()));
         assert_eq!(vector, vec![0x80, 0x56, 0x5f, 0xfa]);

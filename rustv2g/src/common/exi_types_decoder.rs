@@ -1,23 +1,19 @@
-use crate::common::exi_error_codes::ExiError;
-use crate::common::exi_bitstream::ExiBitstream;
 use crate::common::exi_basetypes_decoder::{
-    decoder_nbit_uint,
-    decoder_bytes,
-    decoder_i8,
-    decoder_i16,
-    decoder_i32,
-    decoder_i64,
-    decoder_u8,
-    decoder_u16,
-    decoder_u32,
-    decoder_u64,
+    decoder_bytes, decoder_i16, decoder_i32, decoder_i64, decoder_i8, decoder_nbit_uint,
+    decoder_u16, decoder_u32, decoder_u64, decoder_u8,
 };
+use crate::common::exi_bitstream::ExiBitstream;
+use crate::common::exi_error_codes::ExiError;
 
 // ******************
 // HexBinary
 // ******************
-pub fn decode_exi_type_hex_binary(stream: &mut ExiBitstream, value_len: &mut u16, value_buffer: &mut [u8], value_buffer_size: usize) -> Result<(), ExiError> {
-
+pub fn decode_exi_type_hex_binary(
+    stream: &mut ExiBitstream,
+    value_len: &mut u16,
+    value_buffer: &mut [u8],
+    value_buffer_size: usize,
+) -> Result<(), ExiError> {
     if decoder_nbit_uint(stream, 1)? == 0 {
         *value_len = decoder_u16(stream)?;
         decoder_bytes(stream, *value_len as usize, value_buffer, value_buffer_size)?;
@@ -177,7 +173,6 @@ mod tests {
 
     //     let vector_len = vector.len();
     //     let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
-    // }
 
+    // }
 }

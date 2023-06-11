@@ -1,18 +1,15 @@
-use crate::common::exi_error_codes::ExiError;
-use crate::common::exi_bitstream::ExiBitstream;
 use crate::common::exi_basetypes::ExiUnsigned;
+use crate::common::exi_bitstream::ExiBitstream;
+use crate::common::exi_error_codes::ExiError;
 
 use crate::common::exi_basetypes::{
-    EXI_BASETYPES_MAX_OCTETS_SUPPORTED,
-    EXI_BASETYPES_UINT8_MAX_OCTETS,
-    EXI_BASETYPES_UINT16_MAX_OCTETS,
-    EXI_BASETYPES_UINT32_MAX_OCTETS,
+    EXI_BASETYPES_MAX_OCTETS_SUPPORTED, EXI_BASETYPES_UINT16_MAX_OCTETS,
+    EXI_BASETYPES_UINT32_MAX_OCTETS, EXI_BASETYPES_UINT8_MAX_OCTETS,
 };
 
 const ASCII_MAX_VALUE: u8 = 127;
 
 fn write_unsigned(stream: &mut ExiBitstream, exi_unsigned: &ExiUnsigned) -> Result<(), ExiError> {
-
     for n in 0..*exi_unsigned.octets_count() {
         stream.write_octet(exi_unsigned.octets()[n])?;
     }
@@ -29,10 +26,14 @@ pub fn encoder_bool(stream: &mut ExiBitstream, value: bool) -> Result<(), ExiErr
 /*****************************************************************************
  * interface functions - bytes, binary
  *****************************************************************************/
-pub fn encoder_bytes(stream: &mut ExiBitstream, bytes_len: usize, bytes: &[u8], bytes_size: usize) -> Result<(), ExiError> {
-
+pub fn encoder_bytes(
+    stream: &mut ExiBitstream,
+    bytes_len: usize,
+    bytes: &[u8],
+    bytes_size: usize,
+) -> Result<(), ExiError> {
     if bytes_len > bytes_size {
-        return Err(ExiError::ByteBufferTooSmall)
+        return Err(ExiError::ByteBufferTooSmall);
     }
 
     for n in 0..bytes_len {
@@ -44,12 +45,15 @@ pub fn encoder_bytes(stream: &mut ExiBitstream, bytes_len: usize, bytes: &[u8], 
 /*****************************************************************************
  * interface functions - unsigned integer
  *****************************************************************************/
-pub fn encoder_nbit_uint(stream: &mut ExiBitstream, bit_count: usize, value: u32) -> Result<(), ExiError> {
+pub fn encoder_nbit_uint(
+    stream: &mut ExiBitstream,
+    bit_count: usize,
+    value: u32,
+) -> Result<(), ExiError> {
     stream.write_bits(bit_count, value)
 }
 
 pub fn encoder_u8(stream: &mut ExiBitstream, value: u8) -> Result<(), ExiError> {
-
     let mut exi_unsigned = ExiUnsigned::new([0; EXI_BASETYPES_MAX_OCTETS_SUPPORTED], 0);
     exi_unsigned.convert32_to(value as u32, EXI_BASETYPES_UINT8_MAX_OCTETS)?;
 
@@ -57,7 +61,6 @@ pub fn encoder_u8(stream: &mut ExiBitstream, value: u8) -> Result<(), ExiError> 
 }
 
 pub fn encoder_u16(stream: &mut ExiBitstream, value: u16) -> Result<(), ExiError> {
-
     let mut exi_unsigned = ExiUnsigned::new([0; EXI_BASETYPES_MAX_OCTETS_SUPPORTED], 0);
     exi_unsigned.convert32_to(value as u32, EXI_BASETYPES_UINT16_MAX_OCTETS)?;
 
@@ -65,7 +68,6 @@ pub fn encoder_u16(stream: &mut ExiBitstream, value: u16) -> Result<(), ExiError
 }
 
 pub fn encoder_u32(stream: &mut ExiBitstream, value: u32) -> Result<(), ExiError> {
-
     let mut exi_unsigned = ExiUnsigned::new([0; EXI_BASETYPES_MAX_OCTETS_SUPPORTED], 0);
     exi_unsigned.convert32_to(value, EXI_BASETYPES_UINT32_MAX_OCTETS)?;
 
@@ -73,7 +75,6 @@ pub fn encoder_u32(stream: &mut ExiBitstream, value: u32) -> Result<(), ExiError
 }
 
 pub fn encoder_u64(stream: &mut ExiBitstream, value: u64) -> Result<(), ExiError> {
-
     let mut exi_unsigned = ExiUnsigned::new([0; EXI_BASETYPES_MAX_OCTETS_SUPPORTED], 0);
     exi_unsigned.convert64_to(value)?;
 
@@ -84,30 +85,61 @@ pub fn encoder_u64(stream: &mut ExiBitstream, value: u64) -> Result<(), ExiError
  * interface functions - integer
  *****************************************************************************/
 pub fn encoder_i8(stream: &mut ExiBitstream, value: i8) -> Result<(), ExiError> {
-    encoder_bool(stream, if value < 0 {true} else {false})?;
-    encoder_u8(stream, if value < 0 {(-value) as u8} else {value as u8})
+    encoder_bool(stream, if value < 0 { true } else { false })?;
+    encoder_u8(
+        stream,
+        if value < 0 {
+            (-value) as u8
+        } else {
+            value as u8
+        },
+    )
 }
 
 pub fn encoder_i16(stream: &mut ExiBitstream, value: i16) -> Result<(), ExiError> {
-    encoder_bool(stream, if value < 0 {true} else {false})?;
-    encoder_u16(stream, if value < 0 {(-value) as u16} else {value as u16})
+    encoder_bool(stream, if value < 0 { true } else { false })?;
+    encoder_u16(
+        stream,
+        if value < 0 {
+            (-value) as u16
+        } else {
+            value as u16
+        },
+    )
 }
 
 pub fn encoder_i32(stream: &mut ExiBitstream, value: i32) -> Result<(), ExiError> {
-    encoder_bool(stream, if value < 0 {true} else {false})?;
-    encoder_u32(stream, if value < 0 {(-value) as u32} else {value as u32})
+    encoder_bool(stream, if value < 0 { true } else { false })?;
+    encoder_u32(
+        stream,
+        if value < 0 {
+            (-value) as u32
+        } else {
+            value as u32
+        },
+    )
 }
 
 pub fn encoder_i64(stream: &mut ExiBitstream, value: i64) -> Result<(), ExiError> {
-    encoder_bool(stream, if value < 0 {true} else {false})?;
-    encoder_u64(stream, if value < 0 {(-value) as u64} else {value as u64})
+    encoder_bool(stream, if value < 0 { true } else { false })?;
+    encoder_u64(
+        stream,
+        if value < 0 {
+            (-value) as u64
+        } else {
+            value as u64
+        },
+    )
 }
 
 /*****************************************************************************
  * interface functions - characters, string
  *****************************************************************************/
-pub fn encoder_characters(stream: &mut ExiBitstream, characters: String, characters_size: usize) -> Result<(), ExiError> {
-
+pub fn encoder_characters(
+    stream: &mut ExiBitstream,
+    characters: String,
+    characters_size: usize,
+) -> Result<(), ExiError> {
     if characters.len() > characters_size {
         return Err(ExiError::CharacterBufferTooSmall);
     }
@@ -125,8 +157,7 @@ pub fn encoder_characters(stream: &mut ExiBitstream, characters: String, charact
 mod tests {
     use super::*;
     use crate::common::exi_basetypes::{
-        EXI_BASETYPES_MAX_OCTETS_SUPPORTED,
-        EXI_BASETYPES_UINT16_MAX_OCTETS
+        EXI_BASETYPES_MAX_OCTETS_SUPPORTED, EXI_BASETYPES_UINT16_MAX_OCTETS,
     };
     use std::str;
 
@@ -137,7 +168,12 @@ mod tests {
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
         let mut exi_unsigned = ExiUnsigned::new([0; EXI_BASETYPES_MAX_OCTETS_SUPPORTED], 0);
 
-        assert_eq!(exi_unsigned.convert32_to(0x5678, EXI_BASETYPES_UINT16_MAX_OCTETS).is_ok(), true);
+        assert_eq!(
+            exi_unsigned
+                .convert32_to(0x5678, EXI_BASETYPES_UINT16_MAX_OCTETS)
+                .is_ok(),
+            true
+        );
         assert_eq!(write_unsigned(&mut exi_stream, &exi_unsigned).is_ok(), true);
 
         exi_stream.reset();
@@ -152,7 +188,7 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         assert_eq!(encoder_bool(&mut exi_stream, true).is_ok(), true);
         exi_stream.reset();
         let value = exi_stream.read_bits(1).unwrap();
@@ -164,10 +200,13 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
-        let bytes = vec![1,2,3,4,5];
-        assert_eq!(encoder_bytes(&mut exi_stream, bytes.len(), &bytes, 5).is_ok(), true);
-        
+
+        let bytes = vec![1, 2, 3, 4, 5];
+        assert_eq!(
+            encoder_bytes(&mut exi_stream, bytes.len(), &bytes, 5).is_ok(),
+            true
+        );
+
         exi_stream.reset();
 
         let mut expected = Vec::new();
@@ -182,7 +221,7 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         assert_eq!(encoder_u8(&mut exi_stream, 0x56).is_ok(), true);
 
         exi_stream.reset();
@@ -194,7 +233,7 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         assert_eq!(encoder_u16(&mut exi_stream, 0x5678).is_ok(), true);
 
         exi_stream.reset();
@@ -208,7 +247,7 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         assert_eq!(encoder_u32(&mut exi_stream, 0x5678).is_ok(), true);
 
         exi_stream.reset();
@@ -222,7 +261,7 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         assert_eq!(encoder_u64(&mut exi_stream, 0x5678).is_ok(), true);
 
         exi_stream.reset();
@@ -236,7 +275,7 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         assert_eq!(encoder_i8(&mut exi_stream, 30).is_ok(), true);
 
         exi_stream.reset();
@@ -249,7 +288,7 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         assert_eq!(encoder_i8(&mut exi_stream, -30).is_ok(), true);
 
         exi_stream.reset();
@@ -262,7 +301,7 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         assert_eq!(encoder_i16(&mut exi_stream, 555).is_ok(), true);
 
         exi_stream.reset();
@@ -276,7 +315,7 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         assert_eq!(encoder_i16(&mut exi_stream, -555).is_ok(), true);
 
         exi_stream.reset();
@@ -290,7 +329,7 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         assert_eq!(encoder_i32(&mut exi_stream, 22136).is_ok(), true);
 
         exi_stream.reset();
@@ -305,7 +344,7 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         assert_eq!(encoder_i32(&mut exi_stream, -22136).is_ok(), true);
 
         exi_stream.reset();
@@ -320,7 +359,7 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         assert_eq!(encoder_i64(&mut exi_stream, 22136).is_ok(), true);
 
         exi_stream.reset();
@@ -335,7 +374,7 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
+
         assert_eq!(encoder_i64(&mut exi_stream, -22136).is_ok(), true);
 
         exi_stream.reset();
@@ -350,9 +389,12 @@ mod tests {
         let vector = vec![0; 1024];
         let vector_len = vector.len();
         let mut exi_stream = ExiBitstream::new(vector, vector_len, 0);
-        
-        assert_eq!(encoder_characters(&mut exi_stream, String::from("hello"), 10).is_ok(), true);
-        
+
+        assert_eq!(
+            encoder_characters(&mut exi_stream, String::from("hello"), 10).is_ok(),
+            true
+        );
+
         exi_stream.reset();
 
         let mut expected = Vec::new();
