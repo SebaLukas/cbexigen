@@ -162,6 +162,7 @@ pub fn decode_exi_type_u64(stream: &mut ExiBitstream) -> Result<u64, ExiError> {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 

@@ -147,6 +147,7 @@ pub fn decoder_characters(
     Ok(string)
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 

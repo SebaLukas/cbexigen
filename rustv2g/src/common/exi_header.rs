@@ -24,6 +24,7 @@ pub fn exi_header_read_and_check(stream: &mut ExiBitstream) -> Result<(), ExiErr
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 

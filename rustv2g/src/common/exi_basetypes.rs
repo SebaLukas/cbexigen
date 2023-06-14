@@ -100,6 +100,7 @@ impl ExiUnsigned {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 

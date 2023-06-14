@@ -154,6 +154,7 @@ pub fn encoder_characters(
     Ok(())
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::common::exi_basetypes::{
