@@ -21,7 +21,6 @@ fn encode_app_protocol_type(
                 // Start(anyUri)
                 encoder_nbit_uint(stream, 1, 0)?;
                 // string should not be found in table, so add 2
-                // encoder_u16(stream, (app_protocol_type.namespace().len() + 1) as u16)?;
                 encoder_u16(stream, (app_protocol_type.namespace().len() + 2) as u16)?;
                 // String
                 encoder_characters(

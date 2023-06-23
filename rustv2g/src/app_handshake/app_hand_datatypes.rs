@@ -1,10 +1,34 @@
+use std::convert::TryFrom;
+
 pub const APP_HAND_PROTOCOL_NAMESPACE_CHARACTER_SIZE: u8 = 100;
+pub const APP_HAND_APPPROTOCOLTYPE_5_ARRAY_SIZE: u8 = 5;
+#[derive(Debug, PartialEq)]
 pub enum ResponseCode {
     OkSuccessfulNegotiation = 0,
     OkSuccessfulNegotiationWithMinorDeviation = 1,
     FailedNoNegotiation = 2,
 }
 
+impl TryFrom<u32> for ResponseCode {
+    type Error = ();
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        match value {
+            x if x == ResponseCode::OkSuccessfulNegotiation as u32 => {
+                Ok(ResponseCode::OkSuccessfulNegotiation)
+            }
+            x if x == ResponseCode::OkSuccessfulNegotiationWithMinorDeviation as u32 => {
+                Ok(ResponseCode::OkSuccessfulNegotiationWithMinorDeviation)
+            }
+            x if x == ResponseCode::FailedNoNegotiation as u32 => {
+                Ok(ResponseCode::FailedNoNegotiation)
+            }
+            _ => Err(()),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub struct AppHandAppProtocolType {
     protocol_namespace: String,
     version_number_major: u32,
@@ -51,6 +75,7 @@ impl AppHandAppProtocolType {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct AppHandSupportedAppProtocolReq {
     app_protocol: Vec<AppHandAppProtocolType>,
 }
@@ -64,6 +89,7 @@ impl AppHandSupportedAppProtocolReq {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct AppHandSupportedAppProtocolRes {
     response_code: ResponseCode,
     schema_id: Option<u8>,
@@ -89,6 +115,7 @@ impl AppHandSupportedAppProtocolRes {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub enum AppProtocolExiDocument {
     SupportedAppProtocolReq(AppHandSupportedAppProtocolReq),
     SupportedAppProtocolRes(AppHandSupportedAppProtocolRes),
