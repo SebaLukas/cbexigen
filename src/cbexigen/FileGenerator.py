@@ -137,6 +137,41 @@ class FileGenerator(object):
             tools_logging.log_write_error(f'Exception in {self.__class__.__name__}.{self.__generate_static_c.__name__} '
                                           f'(KeyError): {err}')
 
+    def __generate_static_rs(self, parameters):
+        config = parameters.get('rs', None)
+        if config is None:
+            tools_logging.log_write_error(f'Caution! No rust-parameters passed. '
+                                          f'{self.__class__.__name__}.{self.__generate_static_rs.__name__}')
+            return
+
+        try:
+            generator = tools_generator.get_generator()
+            temp = generator.get_template(config['template'])
+            code = temp.render(filename=config['filename'],
+                               add_debug_code=self.__analyzer_data.add_debug_code_enabled)
+
+            tools.save_code_to_file(config['filename'], code, parameters['folder'])
+        except KeyError as err:
+            tools_logging.log_write_error(f'Exception in {self.__class__.__name__}.{self.__generate_static_rs.__name__} '
+                                          f'(KeyError): {err}')
+    def __generate_lib_rs(self, parameters):
+        config = parameters.get('rs', None)
+        if config is None:
+            tools_logging.log_write_error(f'Caution! No rust-parameters passed. '
+                                          f'{self.__class__.__name__}.{self.__generate_lib_rs.__name__}')
+            return
+
+        try:
+            generator = tools_generator.get_generator()
+            temp = generator.get_template(config['template'])
+            code = temp.render(filename=config['filename'],
+                               add_debug_code=self.__analyzer_data.add_debug_code_enabled)
+
+            tools.save_code_to_file(config['filename'], code, parameters['folder'])
+        except KeyError as err:
+            tools_logging.log_write_error(f'Exception in {self.__class__.__name__}.{self.__generate_lib_rs.__name__} '
+                                          f'(KeyError): {err}')
+
     @staticmethod
     def __generate_converter_h(current_schema, parameters, info_data: AnalyzerData):
         header = DatatypeHeader(current_schema, parameters, info_data, True)
@@ -224,9 +259,61 @@ class FileGenerator(object):
         else:
             tools_logging.msg_write('exec_function: type unknown ' + func_type)
 
+    def __generate_rust(self, parameters):
+        func_type = parameters['type']
+
+        if func_type == 'lib':
+            self.__generate_lib_rs(parameters)
+        elif func_type == 'static':
+            self.__generate_static_rs(parameters)
+        elif func_type == 'converter':
+            self.__init_schema(parameters)
+
+            # call file generation
+            current_schema = self.__schema.get_current_schema()
+            tools_logging.msg_write('*** Generator info: ' + parameters['schema'] + ' ***', True)
+
+            if is_header:
+                self.__generate_converter_h(current_schema, parameters, self.__analyzer_data)
+            else:
+                self.__generate_converter_c(current_schema, parameters, self.__analyzer_data)
+
+            if not self.__analyzer_data_printed:
+                self.__schema.write_analyzer_data_to_log()
+                self.__analyzer_data_printed = True
+        elif func_type == 'decoder':
+            self.__init_schema(parameters)
+
+            # call file generation
+            tools_logging.msg_write('*** Generator info: ' + parameters['schema'] + ' ***', True)
+
+            if is_header:
+                self.__generate_decoder_h(parameters, self.__analyzer_data)
+            else:
+                self.__generate_decoder_c(parameters, self.__analyzer_data)
+
+            if not self.__analyzer_data_printed:
+                self.__schema.write_analyzer_data_to_log()
+                self.__analyzer_data_printed = True
+        elif func_type == 'encoder':
+            self.__init_schema(parameters)
+
+            # call file generation
+            tools_logging.msg_write('*** Generator info: ' + parameters['schema'] + ' ***', True)
+
+            if is_header:
+                self.__generate_encoder_h(parameters, self.__analyzer_data)
+            else:
+                self.__generate_encoder_c(parameters, self.__analyzer_data)
+
+            if not self.__analyzer_data_printed:
+                self.__schema.write_analyzer_data_to_log()
+                self.__analyzer_data_printed = True
+        else:
+            tools_logging.msg_write('exec_function: type unknown ' + func_type)
     def generate_files(self):
         config_module = tools_conf.get_config_module()
-        files = config_module.c_files_to_generate
+        files = config_module.files_to_generate
 
         self.__schema = None
         self.__analyzer_data_clear()
@@ -249,3 +336,9 @@ class FileGenerator(object):
                 self.__generate(False, params)
 
                 self.__generate_debug_files(params)
+
+            rust_config = params.get('rs', None)
+            if rust_config is not None:
+                # rust-file has to be generated
+                tools_logging.msg_write('GENERATING: ' + rust_config['filename'], True)
+                self.__generate_rust(params)
